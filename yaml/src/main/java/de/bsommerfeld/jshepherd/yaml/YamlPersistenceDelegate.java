@@ -152,6 +152,19 @@ class YamlPersistenceDelegate<T> extends AbstractPersistenceDelegate<T> {
 
       writeClassComments(writer, pojoInstance);
 
+      List<Field> allFields = getAllFields(pojoInstance.getClass(), ConfigurablePojo.class);
+      for (int i = 0; i < allFields.size(); i++) {
+        Field field = allFields.get(i);
+        if (isSection(field)) {
+          writeSectionWithComments(writer, field, pojoInstance, "", 1);
+        } else {
+          writeFieldWithComments(writer, field, pojoInstance, "");
+        }
+        if (i < allFields.size() - 1) {
+          writer.println();
+        }
+      }
+      /*
       // Write non-section fields first (root level)
       List<Field> rootFields = getNonSectionFields(pojoInstance.getClass(), ConfigurablePojo.class);
       for (int i = 0; i < rootFields.size(); i++) {
@@ -168,6 +181,7 @@ class YamlPersistenceDelegate<T> extends AbstractPersistenceDelegate<T> {
         writer.println();
         writeSectionWithComments(writer, sectionField, pojoInstance, "", 1);
       }
+      */
     } catch (IOException e) {
       LOGGER.log(Level.SEVERE, "Failed to save YAML file with comments", e);
       throw e;
@@ -246,6 +260,19 @@ class YamlPersistenceDelegate<T> extends AbstractPersistenceDelegate<T> {
 
     // Write nested fields with one extra indent level
     String childIndent = indent + "  ";
+    List<Field> nestedAllFields = getSectionPojoAllFields(sectionPojo);
+    for (int i = 0; i < nestedAllFields.size(); i++) {
+      Field nestedField = nestedAllFields.get(i);
+      if (isSection(nestedField)) {
+        writeSectionWithComments(writer, nestedField, sectionPojo, childIndent, depth + 1);
+      } else {
+        writeFieldWithComments(writer, nestedField, sectionPojo, childIndent);
+      }
+      if (i < nestedAllFields.size() - 1) {
+        writer.println();
+      }
+    }
+    /*
     List<Field> nestedFields = getSectionPojoFields(sectionPojo);
     for (int i = 0; i < nestedFields.size(); i++) {
       Field nestedField = nestedFields.get(i);
@@ -260,6 +287,7 @@ class YamlPersistenceDelegate<T> extends AbstractPersistenceDelegate<T> {
       writer.println();
       writeSectionWithComments(writer, subsectionField, sectionPojo, childIndent, depth + 1);
     }
+    */
   }
 
   private void writeIndentedFieldComments(PrintWriter writer, Field field, String indent) {
